@@ -29,13 +29,13 @@ public class SubServiceServiceImpl
 
     @Override
     @Transactional
-    public int deleteByName(String name) { //passed
+    public int deleteByName(String name) {
         return repository.deleteByName(name);
     }
 
     @Override
     @Transactional
-    public int editBasePriceAndDescription(Long subServiceId, Long basePrice, String description) { //passed
+    public int editBasePriceAndDescription(Long subServiceId, Long basePrice, String description) {
         return repository.editBasePriceAndDescription(subServiceId, basePrice, description);
     }
 }
