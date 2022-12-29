@@ -9,5 +9,5 @@ public interface MainServiceRepository extends JpaRepository<MainService, Long> 
 
     Optional<MainService> findByName(String name);
 
-    int deleteByName (String name);
+    int deleteMainServiceById(Long mainServiceId);
 }
