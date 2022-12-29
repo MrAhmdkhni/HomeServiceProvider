@@ -1,9 +1,8 @@
 package ir.maktab.homeserviceprovider.util;
 
-import ir.maktab.homeserviceprovider.exception.EmailFormatException;
-import ir.maktab.homeserviceprovider.exception.PasswordFormatException;
-import ir.maktab.homeserviceprovider.exception.PhoneNumberFormatException;
+import ir.maktab.homeserviceprovider.exception.*;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class Validation {
@@ -26,6 +25,16 @@ public class Validation {
         String passwordRegex = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8}$";
         if (!Pattern.matches(passwordRegex, password)) {
             throw new PasswordFormatException("the format of the password is incorrect!");
+        }
+    }
+
+    public static void checkImage(String imageName, Long imageSize) {
+        String[] imageNameSplit = imageName.split("\\.");
+        if(!Objects.equals(imageNameSplit[imageNameSplit.length - 1].toLowerCase(), "jpg")){
+            throw new ImageFormatException("image must be jpg");
+        }
+        if(imageSize > 300000L){
+            throw new ImageSizeException("image size must be less than 300 kb");
         }
     }
 
