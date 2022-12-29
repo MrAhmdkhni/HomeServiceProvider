@@ -21,9 +21,19 @@ public class OfferServiceImpl
 
     @Override
     @Transactional
-    public List<Offer> findByOrderId(Long orderId) {
+    public List<Offer> findByOrderIdBasedOnProposedPrice(Long orderId) {
         try {
-            return repository.findByOrderId(orderId);
+            return repository.findByOrderIdBasedOnProposedPrice(orderId);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+
+    @Override
+    public List<Offer> findByOrderIdBasedOnExpertScore(Long orderId) {
+        try {
+            return repository.findByOrderIdBasedOnExpertScore(orderId);
         } catch (Exception e) {
             return Collections.emptyList();
         }
