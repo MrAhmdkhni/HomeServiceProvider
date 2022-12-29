@@ -29,7 +29,7 @@ public class MainServiceServiceImpl
 
     @Override
     @Transactional
-    public int deleteByName(String name) {
-        return repository.deleteByName(name);
+    public int deleteMainServiceById(Long mainServiceId) {
+        return repository.deleteMainServiceById(mainServiceId);
     }
 }

@@ -9,5 +9,5 @@ public interface MainServiceService extends BaseService<MainService, Long> {
 
     Optional<MainService> findByName(String name);
 
-    int deleteByName (String name);
+    int deleteMainServiceById(Long mainServiceId);
 }
