@@ -11,7 +11,7 @@ public interface SubServiceRepository extends JpaRepository<SubService, Long> {
 
     Optional<SubService> findByName(String name);
 
-    int deleteByName(String name);
+    int deleteSubServiceById(Long subServiceId);
 
     @Modifying
     @Query("""
