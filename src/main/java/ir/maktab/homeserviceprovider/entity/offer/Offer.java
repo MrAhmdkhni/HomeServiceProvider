@@ -4,36 +4,36 @@ import ir.maktab.homeserviceprovider.base.entity.BaseEntity;
 import ir.maktab.homeserviceprovider.entity.order.Order;
 import ir.maktab.homeserviceprovider.entity.person.Expert;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Setter
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Offer extends BaseEntity<Long> {
 
     private String offer;
-    @Column(name = "proposed-price")
     private Long proposedPrice;
-    @Column(name = "time_type")
     @Enumerated(value = EnumType.STRING)
     private TimeType timeType;
-    @Column(name = "duration-time")
     private Integer durationTime;
-    @Column(name = "is-accept")
     private Boolean isAccept;
+    private LocalDateTime endTime;
     @ManyToOne
     private Order order;
     @ManyToOne
     private Expert expert;
 
-    public Offer(String offer, Long proposedPrice, TimeType timeType, Integer durationTime) {
+    public Offer(String offer, Long proposedPrice, TimeType timeType, Integer durationTime, LocalDateTime endTime) {
         this.offer = offer;
         this.proposedPrice = proposedPrice;
         this.timeType = timeType;
         this.durationTime = durationTime;
+        this.endTime = endTime;
     }
 
     @Override
