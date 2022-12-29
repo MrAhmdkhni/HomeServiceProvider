@@ -28,5 +28,29 @@ public interface ExpertRepository extends JpaRepository<Expert, Long> {
             set e.expertStatus = :expertStatus
             where e.id = :expertId
             """)
-    int editExpertStatus(Long expertId, ExpertStatus expertStatus);
+    int changeExpertStatus(Long expertId, ExpertStatus expertStatus);
+
+    @Modifying
+    @Query("""
+            update Expert e
+            set e.isActive = :isActive
+            where e.id = :expertId
+            """)
+    int changeExpertActivation(Long expertId, Boolean isActive);
+
+    @Modifying
+    @Query("""
+            update Expert e
+            set e.score = :newScore
+            where e.id = :expertId
+            """)
+    int updateScore(Long expertId, Integer newScore);
+
+    @Modifying
+    @Query("""
+            update Expert e
+            set e.credit = :newCredit
+            where e.id = :expertId
+            """)
+    int updateCredit(Long expertId, Long newCredit);
 }
