@@ -5,9 +5,8 @@ import ir.maktab.homeserviceprovider.entity.offer.Offer;
 import ir.maktab.homeserviceprovider.entity.person.Customer;
 import ir.maktab.homeserviceprovider.entity.service.SubService;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,33 +17,24 @@ import java.util.List;
 @Setter
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Order extends BaseEntity<Long> {
 
-    @Column(name = "proposed-price")
     private Long proposedPrice;
     private String description;
-    @Column(name = "execution_time")
     private LocalDateTime executionTime;
     private String address;
-    @Column(name = "order_status")
     @Enumerated(value = EnumType.STRING)
     private OrderStatus orderStatus;
+    @UpdateTimestamp
+    private LocalDateTime updateTime;
     @ManyToOne(cascade = CascadeType.MERGE)
     private Customer customer;
     @ManyToOne(cascade = CascadeType.MERGE)
     private SubService subService;
     @OneToMany(mappedBy = "order")
     private List<Offer> offers  = new ArrayList<>();
-
-    public Order(Long proposedPrice, String description, LocalDateTime executionTime, String address, OrderStatus orderStatus, Customer customer, SubService subService) {
-        this.proposedPrice = proposedPrice;
-        this.description = description;
-        this.executionTime = executionTime;
-        this.address = address;
-        this.orderStatus = orderStatus;
-        this.customer = customer;
-        this.subService = subService;
-    }
 
     public Order(Long proposedPrice, String description, LocalDateTime executionTime, String address) {
         this.proposedPrice = proposedPrice;
