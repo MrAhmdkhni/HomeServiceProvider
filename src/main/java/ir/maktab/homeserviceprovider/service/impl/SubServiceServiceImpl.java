@@ -14,6 +14,7 @@ public class SubServiceServiceImpl
         extends BaseServiceImpl<SubService, Long, SubServiceRepository>
         implements SubServiceService {
 
+
     public SubServiceServiceImpl(SubServiceRepository repository) {
         super(repository);
     }
@@ -29,8 +30,8 @@ public class SubServiceServiceImpl
 
     @Override
     @Transactional
-    public int deleteByName(String name) {
-        return repository.deleteByName(name);
+    public int deleteSubServiceById(Long subServiceId) {
+        return repository.deleteSubServiceById(subServiceId);
     }
 
     @Override

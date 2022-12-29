@@ -9,7 +9,7 @@ public interface SubServiceService extends BaseService<SubService, Long> {
 
     Optional<SubService> findByName(String name);
 
-    int deleteByName(String name);
+    int deleteSubServiceById(Long subServiceId);
 
     int editBasePriceAndDescription(Long subServiceId, Long basePrice, String description);
 }
