@@ -2,20 +2,17 @@ package ir.maktab.homeserviceprovider.entity.service;
 
 import ir.maktab.homeserviceprovider.base.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "main_service")
 @Setter
 @Getter
 @NoArgsConstructor
 @ToString
+@Builder
 public class MainService extends BaseEntity<Long> {
 
     @Column(nullable = false)
@@ -26,5 +23,10 @@ public class MainService extends BaseEntity<Long> {
 
     public MainService(String name) {
         this.name = name;
+    }
+
+    public MainService(String name, List<SubService> subServices) {
+        this.name = name;
+        this.subServices = subServices;
     }
 }

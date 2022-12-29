@@ -4,10 +4,9 @@ import ir.maktab.homeserviceprovider.base.entity.BaseEntity;
 import ir.maktab.homeserviceprovider.entity.order.Order;
 import ir.maktab.homeserviceprovider.entity.person.Expert;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -17,11 +16,12 @@ import java.util.Set;
 @Setter
 @Getter
 @NoArgsConstructor
-public class SubService extends BaseEntity<Long> {
+@AllArgsConstructor
+@Builder
+public class SubService extends BaseEntity<Long> implements Serializable {
 
     @Column(nullable = false)
     private String name;
-    @Column(name = "base_price")
     private Long basePrice;
     private String description;
     @ManyToOne
@@ -53,4 +53,6 @@ public class SubService extends BaseEntity<Long> {
                 ", main-service=" + mainService.getName() +
                 '}';
     }
+
+
 }
