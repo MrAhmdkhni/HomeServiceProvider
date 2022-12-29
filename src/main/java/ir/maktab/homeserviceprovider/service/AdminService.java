@@ -1,7 +1,10 @@
 package ir.maktab.homeserviceprovider.service;
 
 import ir.maktab.homeserviceprovider.base.service.BaseService;
+import ir.maktab.homeserviceprovider.dto.CustomerFilterDTO;
+import ir.maktab.homeserviceprovider.dto.ExpertFilterDTO;
 import ir.maktab.homeserviceprovider.entity.person.Admin;
+import ir.maktab.homeserviceprovider.entity.person.Customer;
 import ir.maktab.homeserviceprovider.entity.person.Expert;
 import ir.maktab.homeserviceprovider.entity.person.ExpertStatus;
 import ir.maktab.homeserviceprovider.entity.service.MainService;
@@ -13,11 +16,11 @@ public interface AdminService extends BaseService<Admin, Long> {
 
     void addMainService(MainService mainService);
 
-    int deleteMainService(MainService mainService);
+    int deleteMainService(Long mainServiceId);
 
     void addSubService(Long mainServiceId, SubService subService);
 
-    int deleteSubService(SubService subService);
+    int deleteSubService(Long subServiceId);
 
     void addExpertToSubService(Long subServiceId, Long expertId);
 
@@ -33,4 +36,11 @@ public interface AdminService extends BaseService<Admin, Long> {
 
     int changeExpertStatus(Long expertId, ExpertStatus expertStatus);
 
+    boolean checkExpertDelayForDoingWork(Long offerId);
+
+    int changeExpertActivation(Long expertId, Boolean isActive);
+
+    List<Expert> expertsFilter(ExpertFilterDTO expertDTO);
+
+    List<Customer> customersFilter(CustomerFilterDTO customerDTO);
 }
