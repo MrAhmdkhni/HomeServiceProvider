@@ -22,4 +22,12 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     int editPassword(Long customerId, String newPassword);
 
     boolean existsByEmail(String email);
+
+    @Modifying
+    @Query("""
+            update Customer c
+            set c.credit = :newCredit
+            where c.id = :customerId
+            """)
+    int updateCredit(Long customerId, Long newCredit);
 }
