@@ -1,6 +1,7 @@
 package ir.maktab.homeserviceprovider.service;
 
 import ir.maktab.homeserviceprovider.base.service.BaseService;
+import ir.maktab.homeserviceprovider.dto.CustomerFilterDTO;
 import ir.maktab.homeserviceprovider.entity.comment.Comment;
 import ir.maktab.homeserviceprovider.entity.offer.Offer;
 import ir.maktab.homeserviceprovider.entity.order.Order;
@@ -29,15 +30,23 @@ public interface CustomerService extends BaseService<Customer, Long> {
 
     void addOrder(Long customerId, Long subServiceId , Order order);
 
-    void addCommentForExpertPerformance(Long orderId, Comment comment);
+    void addCommentForExpertPerformance(Long orderId, Long expertId, Comment comment);
 
     List<Order> viewCustomerOrders(Long customerId);
 
-    List<Offer> viewOrderOffers(Long orderId);
+    List<Offer> viewOrderOffersBaseOnProposedPrice(Long orderId);
 
-    void selectOfferForOrder(Long offerId, Long orderId);
+    List<Offer> viewOrderOffersBaseOnExpertScore(Long orderId);
+
+    void selectOffer(Long offerId);
 
     int changeOrderStatusAfterExpertComes(Long orderId);
 
     int changeOrderStatusAfterStarted(Long orderId);
+
+    void updateCredit(Long customerId, Long newCredit);
+
+    void payFromCredit(Long orderId, Long customerId, Long expertId, Long amount);
+
+    List<Customer> customersFilter(CustomerFilterDTO customerDTO);
 }
