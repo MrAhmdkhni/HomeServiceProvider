@@ -4,6 +4,7 @@ import ir.maktab.homeserviceprovider.entity.order.Order;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,6 +22,7 @@ public class Customer extends Person{
     @OneToMany(mappedBy = "customer", cascade = CascadeType.MERGE, orphanRemoval = true)
     private List<Order> orders = new ArrayList<>();
 
+    @Builder
     public Customer(String firstname, String lastname, String phoneNumber, String email, String password) {
         super(firstname, lastname, phoneNumber, email, password);
     }

@@ -3,6 +3,7 @@ package ir.maktab.homeserviceprovider.entity.person;
 import ir.maktab.homeserviceprovider.entity.offer.Offer;
 import ir.maktab.homeserviceprovider.entity.service.SubService;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,17 +22,24 @@ public class Expert extends Person {
     @Lob
     private byte[] image;
     private Integer score;
-    @Column(name = "expert_status")
     @Enumerated(value = EnumType.STRING)
     private ExpertStatus expertStatus;
     private Long credit;
+    private Boolean isActive;
     @ManyToMany(mappedBy = "experts", cascade = CascadeType.ALL)
     private Set<SubService> subServices = new HashSet<>();
     @OneToMany(mappedBy = "expert")
     private List<Offer> offers = new ArrayList<>();
 
+
     public Expert(String firstname, String lastname, String phoneNumber, String email, String password) {
         super(firstname, lastname, phoneNumber, email, password);
+    }
+
+    @Builder
+    public Expert(String firstname, String lastname, String phoneNumber, String email, String password, byte[] image) {
+        super(firstname, lastname, phoneNumber, email, password);
+        this.image = image;
     }
 
     public void addSubService(SubService subService) {
