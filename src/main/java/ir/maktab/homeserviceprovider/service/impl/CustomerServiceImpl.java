@@ -2,30 +2,35 @@ package ir.maktab.homeserviceprovider.service.impl;
 
 import ir.maktab.homeserviceprovider.base.service.impl.BaseServiceImpl;
 import ir.maktab.homeserviceprovider.dto.CustomerFilterDTO;
+import ir.maktab.homeserviceprovider.entity.token.ConfirmationToken;
 import ir.maktab.homeserviceprovider.entity.comment.Comment;
 import ir.maktab.homeserviceprovider.entity.offer.Offer;
 import ir.maktab.homeserviceprovider.entity.order.Order;
 import ir.maktab.homeserviceprovider.entity.order.OrderStatus;
 import ir.maktab.homeserviceprovider.entity.person.Customer;
 import ir.maktab.homeserviceprovider.entity.person.Expert;
+import ir.maktab.homeserviceprovider.entity.person.Person;
+import ir.maktab.homeserviceprovider.entity.person.Role;
 import ir.maktab.homeserviceprovider.entity.service.MainService;
 import ir.maktab.homeserviceprovider.entity.service.SubService;
 import ir.maktab.homeserviceprovider.exception.*;
 import ir.maktab.homeserviceprovider.repository.CustomerRepository;
 import ir.maktab.homeserviceprovider.service.*;
-import ir.maktab.homeserviceprovider.util.Validation;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CustomerServiceImpl
@@ -38,10 +43,12 @@ public class CustomerServiceImpl
     private final CommentService commentService;
     private final OfferService offerService;
     private final ExpertService expertService;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final ConfirmationTokenService confirmationTokenService;
     @PersistenceContext
     private EntityManager entityManager;
 
-    public CustomerServiceImpl(CustomerRepository repository, MainServiceService mainServiceService, SubServiceService subServiceService, OrderService orderService, CommentService commentService, OfferService offerService, ExpertService expertService) {
+    public CustomerServiceImpl(CustomerRepository repository, MainServiceService mainServiceService, SubServiceService subServiceService, OrderService orderService, CommentService commentService, OfferService offerService, ExpertService expertService, BCryptPasswordEncoder passwordEncoder, ConfirmationTokenService confirmationTokenService) {
         super(repository);
         this.mainServiceService = mainServiceService;
         this.subServiceService = subServiceService;
@@ -49,6 +56,8 @@ public class CustomerServiceImpl
         this.commentService = commentService;
         this.offerService = offerService;
         this.expertService = expertService;
+        this.passwordEncoder = passwordEncoder;
+        this.confirmationTokenService = confirmationTokenService;
     }
 
 
@@ -62,9 +71,9 @@ public class CustomerServiceImpl
     }
 
     @Override
-    public Optional<Customer> findByPhoneNumber(String phoneNumber) {
+    public Optional<Customer> findByUsername(String username) {
         try {
-            return repository.findByPhoneNumber(phoneNumber);
+            return repository.findByUsername(username);
         } catch (Exception e) {
             return Optional.empty();
         }
@@ -75,8 +84,7 @@ public class CustomerServiceImpl
     public int editPassword(Long customerId, String newPassword) {
         if (findById(customerId).isEmpty())
             throw new ExpertNotFoundException("this customer does not exist!");
-        Validation.checkPassword(newPassword);
-        return repository.editPassword(customerId, newPassword);
+        return repository.editPassword(customerId, passwordEncoder.encode(newPassword));
     }
 
     @Override
@@ -87,16 +95,54 @@ public class CustomerServiceImpl
 
     @Override
     public void signUp(Customer customer) {
-        if (findByPhoneNumber(customer.getPhoneNumber()).isPresent())
-            throw new DuplicatePhoneNumberException("this phone number already exist!");
-        else if (findByEmail(customer.getEmail()).isPresent())
-            throw new DuplicateEmailException("this email number already exist!");
+        if (findByEmail(customer.getEmail()).isPresent())
+            throw new DuplicateEmailException("this email already exist!");
+        if (findByUsername(customer.getUsername()).isPresent())
+            throw new DuplicateUsernameException("this username already exist!");
 
-        Validation.checkPhoneNumber(customer.getPhoneNumber());
-        Validation.checkEmail(customer.getEmail());
-        Validation.checkPassword(customer.getPassword());
+        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
+        customer.setRole(Role.ROLE_CUSTOMER);
+        customer.setIsActive(false);
         customer.setCredit(0L);
         saveOrUpdate(customer);
+    }
+
+    @Override
+    public String signUpWithValidation(Customer customer) {
+        if (findByEmail(customer.getEmail()).isPresent()) {
+            Customer loadedCustomer = findByEmail(customer.getEmail()).get();
+
+            if (!loadedCustomer.getIsActive()) {
+                String token = UUID.randomUUID().toString();
+                saveConfirmationToken(loadedCustomer, token);
+                return token;
+            }
+            throw new DuplicateEmailException("this email already exist!");
+        }
+        if (findByUsername(customer.getUsername()).isPresent())
+            throw new DuplicateUsernameException("this username already exist!");
+
+        customer.setPassword(passwordEncoder.encode(customer.getPassword()));
+        customer.setRole(Role.ROLE_CUSTOMER);
+        customer.setIsActive(false);
+        customer.setCredit(0L);
+        saveOrUpdate(customer);
+
+        String token = UUID.randomUUID().toString();
+        saveConfirmationToken(customer, token);
+        return token;
+    }
+
+    private void saveConfirmationToken(Person person, String token) {
+        ConfirmationToken confirmationToken = new ConfirmationToken(
+                token, LocalDateTime.now(), LocalDateTime.now().plusMinutes(15), person
+        );
+        confirmationTokenService.saveConfirmationToken(confirmationToken);
+    }
+
+    @Override
+    public int activeCustomer(String email) {
+        return repository.activeCustomer(email);
     }
 
     @Override
@@ -131,6 +177,10 @@ public class CustomerServiceImpl
 
     @Override
     public void addCommentForExpertPerformance(Long orderId, Long expertId, Comment comment) {
+        if (comment.getScore() == null)
+            throw new NullScoreException("The score cannot be null!");
+        if (comment.getComment() == null)
+            throw new NullCommentException("The comment cannot be null!");
         if (comment.getScore() < 0 && comment.getScore() > 6)
             throw new ScoreException("the expert score should be between 1 and 5!");
         Optional<Order> order = orderService.findById(orderId);
@@ -144,13 +194,6 @@ public class CustomerServiceImpl
         expertService.updateScore(expertId, expert.get().getScore() + comment.getScore());
     }
 
-    @Override
-    public List<Order> viewCustomerOrders(Long customerId) {
-        List<Order> orders = orderService.findByCustomerId(customerId);
-        if (orders.isEmpty())
-            throw new OrderNotFoundException("there is no orders!");
-        return orders;
-    }
 
     @Override
     public List<Offer> viewOrderOffersBaseOnProposedPrice(Long orderId) {
@@ -230,7 +273,7 @@ public class CustomerServiceImpl
             throw new ExpertNotFoundException("this expert does not exist!");
         orderService.changeOrderStatus(orderId, OrderStatus.DONE, OrderStatus.PAID);
         updateCredit(customerId, customer.get().getCredit() - amount);
-        expertService.updateCredit(expertId, expert.get().getCredit() + (long)(amount * 0.7));
+        expertService.updateCredit(expertId, expert.get().getCredit() + (long) (amount * 0.7));
     }
 
     @Override
@@ -256,14 +299,18 @@ public class CustomerServiceImpl
             String lastname = "%" + customerDTO.getLastname() + "%";
             predicateList.add(criteriaBuilder.like(customerRoot.get("lastname"), lastname));
         }
-        if (customerDTO.getPhoneNumber() != null) {
-            String phoneNumber = "%" + customerDTO.getPhoneNumber() + "%";
-            predicateList.add(criteriaBuilder.like(customerRoot.get("phoneNumber"), phoneNumber));
-        }
         if (customerDTO.getEmail() != null) {
             String email = "%" + customerDTO.getEmail() + "%";
             predicateList.add(criteriaBuilder.like(customerRoot.get("email"), email));
         }
+        if (customerDTO.getUsername() != null) {
+            String username = "%" + customerDTO.getUsername() + "%";
+            predicateList.add(criteriaBuilder.like(customerRoot.get("username"), username));
+        }
+        if (customerDTO.getIsActive() != null) {
+            predicateList.add(criteriaBuilder.equal(customerRoot.get("isActive"), customerDTO.getIsActive()));
+        }
+
         if (customerDTO.getMinCredit() == null && customerDTO.getMaxCredit() != null) {
             predicateList.add(criteriaBuilder.lt(customerRoot.get("credit"), customerDTO.getMaxCredit()));
         }
@@ -273,6 +320,39 @@ public class CustomerServiceImpl
         if (customerDTO.getMinCredit() != null && customerDTO.getMaxCredit() != null) {
             predicateList.add(criteriaBuilder.between(customerRoot.get("credit"), customerDTO.getMinCredit(), customerDTO.getMaxCredit()));
         }
+
+
+        if (customerDTO.getMinCreationDate() != null && customerDTO.getMaxCreationDate() != null) {
+            predicateList
+                    .add(criteriaBuilder
+                            .between(customerRoot.get("creationDate"),
+                                    LocalDateTime.parse(customerDTO.getMinCreationDate()),
+                                    LocalDateTime.parse(customerDTO.getMaxCreationDate())));
+        }
+    }
+
+    @Override
+    public List<Order> viewOrderHistory(Long customerId) {
+        List<Order> orders = orderService.findByCustomerId(customerId);
+        if (orders.isEmpty())
+            throw new OrderNotFoundException("there is no orders!");
+        return orders;
+    }
+
+    @Override
+    public List<Order> viewOrderHistory(Long customerId, OrderStatus orderStatus) {
+        List<Order> orders = orderService.findByCustomerIdAndOrderStatus(customerId, orderStatus);
+        if (orders.isEmpty())
+            throw new OrderNotFoundException("there is no orders!");
+        return orders;
+    }
+
+    @Override
+    public Long viewCredit(Long customerId) {
+        Optional<Customer> customer = findById(customerId);
+        if (customer.isEmpty())
+            throw new CustomerNotFoundException("this customer does not exit!");
+        return customer.get().getCredit();
     }
 
 }
