@@ -23,8 +23,8 @@ public class Customer extends Person{
     private List<Order> orders = new ArrayList<>();
 
     @Builder
-    public Customer(String firstname, String lastname, String phoneNumber, String email, String password) {
-        super(firstname, lastname, phoneNumber, email, password);
+    public Customer(String firstname, String lastname, String email, String username, String password, Boolean isActive, Role role) {
+        super(firstname, lastname, email, username, password, isActive, role);
     }
 
     @Override
@@ -32,8 +32,8 @@ public class Customer extends Person{
         return "Customer {" +
                 "firstname='" + getFirstname() + '\'' +
                 ", lastname='" + getLastname() + '\'' +
-                ", phoneNumber='" + getPhoneNumber() + '\'' +
                 ", email='" + getEmail() + '\'' +
+                ", username='" + getUsername() + '\'' +
                 "credit=" + credit +
                 "} ";
     }
