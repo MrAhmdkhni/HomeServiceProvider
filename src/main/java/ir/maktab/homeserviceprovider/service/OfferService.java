@@ -12,4 +12,10 @@ public interface OfferService extends BaseService<Offer, Long> {
     List<Offer> findByOrderIdBasedOnExpertScore(Long orderId);
 
     int editIsAccept(Long offerId, Boolean isAccept);
+
+    List<Offer> findOfferByExpertIdAndIsAccept(Long expertId, boolean isAccept);
+
+    int calculateNumberOfRegisteredOffers(Long expertId);
+
+    int calculateNumberOfRegisteredOffers(Long expertId, Boolean isAccept);
 }

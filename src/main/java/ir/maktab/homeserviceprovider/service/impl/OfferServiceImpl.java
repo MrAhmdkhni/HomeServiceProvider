@@ -44,4 +44,24 @@ public class OfferServiceImpl
     public int editIsAccept(Long offerId, Boolean isAccept) {
         return repository.editIsAccept(offerId, isAccept);
     }
+
+    @Override
+    @Transactional
+    public List<Offer> findOfferByExpertIdAndIsAccept(Long expertId, boolean isAccept) {
+        try {
+            return repository.findOfferByExpertIdAndIsAccept(expertId, isAccept);
+        } catch (Exception e) {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public int calculateNumberOfRegisteredOffers(Long expertId) {
+        return repository.calculateNumberOfRegisteredOffers(expertId);
+    }
+
+    @Override
+    public int calculateNumberOfRegisteredOffers(Long expertId, Boolean isAccept) {
+        return repository.calculateNumberOfRegisteredOffers(expertId, isAccept);
+    }
 }
