@@ -31,5 +31,17 @@ public interface OfferRepository extends JpaRepository<Offer, Long> {
             """)
     int editIsAccept(Long offerId, Boolean isAccept);
 
+    List<Offer> findOfferByExpertIdAndIsAccept(Long expertId, boolean isAccept);
 
+    @Query("""
+            select count(o.expert.id) from Offer o
+            where o.expert.id = :expertId
+            """)
+    int calculateNumberOfRegisteredOffers(Long expertId);
+
+    @Query("""
+            select count(o.expert.id) from Offer o
+            where o.expert.id = :expertId and o.isAccept = :isAccept
+            """)
+    int calculateNumberOfRegisteredOffers(Long expertId, boolean isAccept);
 }
