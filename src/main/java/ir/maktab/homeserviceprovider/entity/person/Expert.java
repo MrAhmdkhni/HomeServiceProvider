@@ -3,10 +3,7 @@ package ir.maktab.homeserviceprovider.entity.person;
 import ir.maktab.homeserviceprovider.entity.offer.Offer;
 import ir.maktab.homeserviceprovider.entity.service.SubService;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,20 +22,20 @@ public class Expert extends Person {
     @Enumerated(value = EnumType.STRING)
     private ExpertStatus expertStatus;
     private Long credit;
-    private Boolean isActive;
+
     @ManyToMany(mappedBy = "experts", cascade = CascadeType.ALL)
     private Set<SubService> subServices = new HashSet<>();
     @OneToMany(mappedBy = "expert")
     private List<Offer> offers = new ArrayList<>();
 
 
-    public Expert(String firstname, String lastname, String phoneNumber, String email, String password) {
-        super(firstname, lastname, phoneNumber, email, password);
+    public Expert(String firstname, String lastname, String email, String username, String password, Boolean isActive, Role role) {
+        super(firstname, lastname, email, username, password, isActive, role);
     }
 
     @Builder
-    public Expert(String firstname, String lastname, String phoneNumber, String email, String password, byte[] image) {
-        super(firstname, lastname, phoneNumber, email, password);
+    public Expert(String firstname, String lastname, String email, String username, String password, Boolean isActive, Role role, byte[] image) {
+        super(firstname, lastname, email, username, password, isActive, role);
         this.image = image;
     }
 
@@ -57,8 +54,8 @@ public class Expert extends Person {
         return "Expert {" +
                 "firstname = '" + getFirstname() + '\'' +
                 ", lastname = '" + getLastname() + '\'' +
-                ", phoneNumber = '" + getPhoneNumber() + '\'' +
                 ", email = '" + getEmail() + '\'' +
+                ", username = '" + getUsername() + '\'' +
                 ", score = " + score +
                 ", expertStatus = '" + expertStatus + '\'' +
                 ", credit = " + credit +
