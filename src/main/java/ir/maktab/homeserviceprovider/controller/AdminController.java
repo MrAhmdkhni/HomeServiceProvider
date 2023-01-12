@@ -4,19 +4,25 @@ import ir.maktab.homeserviceprovider.dto.*;
 import ir.maktab.homeserviceprovider.entity.service.MainService;
 import ir.maktab.homeserviceprovider.entity.service.SubService;
 import ir.maktab.homeserviceprovider.service.AdminService;
+import org.modelmapper.ModelMapper;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/admin")
 public class AdminController {
 
     private final AdminService adminService;
+    private final ModelMapper mapper;
 
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService, ModelMapper mapper) {
         this.adminService = adminService;
+        this.mapper = mapper;
     }
 
 
@@ -58,22 +64,18 @@ public class AdminController {
     @GetMapping("/findAllMainService")
     public List<MainServiceDTO> findAllMainService() {
         List<MainServiceDTO> mainServiceDTOS = new ArrayList<>();
-        adminService.findAllMainService().forEach(mainService -> {
-            mainServiceDTOS.add(new MainServiceDTO(mainService.getName()));
-        });
+        adminService.findAllMainService().forEach(mainService ->
+                mainServiceDTOS.add(mapper.map(mainService, MainServiceDTO.class))
+        );
         return mainServiceDTOS;
     }
 
     @GetMapping("/findAllSubService")
     public List<SubServiceDTO> findAllSubService() {
         List<SubServiceDTO> subServiceDTOS = new ArrayList<>();
-        adminService.findAllSubService().forEach(subService -> {
-            subServiceDTOS.add(new SubServiceDTO(
-                    subService.getName(),
-                    subService.getBasePrice(),
-                    subService.getDescription(),
-                    subService.getMainService().getName()));
-        });
+        adminService.findAllSubService().forEach(subService ->
+                subServiceDTOS.add(mapper.map(subService, SubServiceDTO.class))
+        );
         return subServiceDTOS;
     }
 
@@ -88,17 +90,9 @@ public class AdminController {
     @GetMapping("/findAllExpert")
     public List<ExpertDTO> findAllExpert() {
         List<ExpertDTO> expertDTOS = new ArrayList<>();
-        adminService.findAllExpert().forEach(expert -> {
-            expertDTOS.add(new ExpertDTO(
-                    expert.getFirstname(),
-                    expert.getLastname(),
-                    expert.getPhoneNumber(),
-                    expert.getEmail(),
-                    expert.getScore(),
-                    expert.getExpertStatus(),
-                    expert.getCredit(),
-                    expert.getIsActive()));
-        });
+        adminService.findAllExpert().forEach(expert ->
+                expertDTOS.add(mapper.map(expert, ExpertDTO.class))
+        );
         return expertDTOS;
     }
 
@@ -108,7 +102,7 @@ public class AdminController {
     }
 
     @PutMapping("/checkExpertDelay/{offerId}")
-    public boolean checkExpertDelayForDoingWork(@PathVariable Long offerId){
+    public boolean checkExpertDelayForDoingWork(@PathVariable Long offerId) {
         return adminService.checkExpertDelayForDoingWork(offerId);
     }
 
@@ -117,54 +111,106 @@ public class AdminController {
         return adminService.changeExpertActivation(expertActivationDTO.getExpertId(), expertActivationDTO.getIsActive());
     }
 
-    @GetMapping("/expertsFilters")
-    public List<ExpertFilterDTO> expertsFilters(@RequestBody ExpertFilterDTO expertDTO){
-        List<ExpertFilterDTO> expertFilterDTOS = new ArrayList<>();
-        adminService.expertsFilter(expertDTO).forEach(expert -> {
-            expertFilterDTOS.add(new ExpertFilterDTO(
-                    expertDTO.getFirstname(),
-                    expertDTO.getLastname(),
-                    expertDTO.getPhoneNumber(),
-                    expertDTO.getEmail(),
-                    expertDTO.getMaxScore(),
-                    expertDTO.getMinScore(),
-                    expertDTO.getExpertStatus(),
-                    expertDTO.getMaxCredit(),
-                    expertDTO.getMinCredit(),
-                    expertDTO.getIsActive()));
-        });
-        return expertFilterDTOS;
-    }
-
-    @GetMapping("/expertsFilter")
-    public List<ExpertDTO> expertsFilter(@RequestBody ExpertFilterDTO expertFilterDTO){
+    @PostMapping("/expertsFilter")
+    public List<ExpertDTO> expertsFilter(@RequestBody ExpertFilterDTO expertFilterDTO) {
         List<ExpertDTO> expertDTOS = new ArrayList<>();
-        adminService.expertsFilter(expertFilterDTO).forEach(expertDTO -> {
-            expertDTOS.add(new ExpertDTO(
-                    expertDTO.getFirstname(),
-                    expertDTO.getLastname(),
-                    expertDTO.getPhoneNumber(),
-                    expertDTO.getEmail(),
-                    expertDTO.getScore(),
-                    expertDTO.getExpertStatus(),
-                    expertDTO.getCredit(),
-                    expertDTO.getIsActive()));
-        });
+        adminService.expertsFilter(expertFilterDTO)
+                .forEach(expert ->
+                        expertDTOS.add(mapper.map(expert, ExpertDTO.class)));
         return expertDTOS;
     }
 
-    @GetMapping("/customersFilter")
-    public List<CustomerFilterDTO> customersFilter(@RequestBody CustomerFilterDTO customerDTO){
-        List<CustomerFilterDTO> customerFilterDTOS = new ArrayList<>();
-        adminService.customersFilter(customerDTO).forEach(customer -> {
-            customerFilterDTOS.add(new CustomerFilterDTO(
-                    customerDTO.getFirstname(),
-                    customerDTO.getLastname(),
-                    customerDTO.getPhoneNumber(),
-                    customerDTO.getEmail(),
-                    customerDTO.getMaxCredit(),
-                    customerDTO.getMinCredit()));
-        });
-        return customerFilterDTOS;
+    @PostMapping("/customersFilter")
+    public List<PersonDTO> customersFilter(@RequestBody CustomerFilterDTO customerDTO) {
+        List<PersonDTO> personDTOS = new ArrayList<>();
+        adminService.customersFilter(customerDTO).forEach(customer ->
+                personDTOS.add(mapper.map(customer, PersonDTO.class))
+        );
+        return personDTOS;
+    }
+
+    @Transactional
+    @GetMapping("/viewSubServiceExperts/{subServiceId}")
+    public Set<ExpertDTO> viewSubServiceExperts(@PathVariable Long subServiceId) {
+        Set<ExpertDTO> expertDTOS = new HashSet<>();
+        adminService.viewSubServiceExperts(subServiceId)
+                .forEach(expert ->
+                        expertDTOS.add(mapper.map(expert, ExpertDTO.class)));
+        return expertDTOS;
+    }
+
+    @PostMapping("/ordersFilter")
+    public List<OrderDTO> ordersFilter(@RequestBody OrderFilterDTO orderFilterDTO) {
+        List<OrderDTO> orderDTOS = new ArrayList<>();
+        adminService.ordersFilter(orderFilterDTO)
+                .forEach(order ->
+                        orderDTOS.add(mapper.map(order, OrderDTO.class)));
+        return orderDTOS;
+    }
+
+    @GetMapping("/viewExpertOrderHistory/{expertId}/{isAccept}")
+    public List<OrderDTO> viewExpertOrderHistory(@PathVariable Long expertId, @PathVariable boolean isAccept) {
+        List<OrderDTO> orderDTOS = new ArrayList<>();
+        adminService.viewExpertOrderHistory(expertId, isAccept)
+                .forEach(
+                        order -> orderDTOS.add(
+                                mapper.map(order, OrderDTO.class)));
+        return orderDTOS;
+    }
+
+    @PostMapping("/viewExpertOrderHistory")
+    public List<OrderDTO> viewExpertOrderHistory(@RequestBody ExpertOrderHistoryDTO expertOrderHistoryDTO) {
+        List<OrderDTO> orderDTOS = new ArrayList<>();
+        adminService.viewExpertOrderHistory(
+                        expertOrderHistoryDTO.getExpertId(),
+                        expertOrderHistoryDTO.getIsAccept(),
+                        expertOrderHistoryDTO.getOrderStatus())
+                .forEach(
+                        order -> orderDTOS.add(
+                                mapper.map(order, OrderDTO.class)));
+        return orderDTOS;
+    }
+
+    @GetMapping("/viewCustomerOrderHistory/{customerId}")
+    public List<OrderDTO> viewCustomerOrderHistory(@PathVariable Long customerId) {
+        List<OrderDTO> orderDTOS = new ArrayList<>();
+        adminService.viewCustomerOrderHistory(customerId)
+                .forEach(
+                        order -> orderDTOS.add(
+                                mapper.map(order, OrderDTO.class))
+                );
+        return orderDTOS;
+    }
+
+    @PostMapping("/viewCustomerOrderHistory")
+    public List<OrderDTO> viewCustomerOrderHistory(@RequestBody CustomerOrderStatusDTO customerOrderStatusDTO) {
+        List<OrderDTO> orderDTOS = new ArrayList<>();
+        adminService.viewCustomerOrderHistory(
+                        customerOrderStatusDTO.getCustomerId(),
+                        customerOrderStatusDTO.getOrderStatus())
+                .forEach(order -> orderDTOS.add(mapper.map(order, OrderDTO.class)));
+        return orderDTOS;
+    }
+
+    @GetMapping("/calculateNumberOfRegisteredOrders/{customerId}")
+    public int calculateNumberOfRegisteredOrders(@PathVariable Long customerId) {
+        return adminService.calculateNumberOfRegisteredOrders(customerId);
+    }
+
+    @PostMapping("/calculateNumberOfRegisteredOrders")
+    public int calculateNumberOfRegisteredOrders(@RequestBody CustomerOrderStatusDTO customerOrderStatusDTO) {
+        return adminService.calculateNumberOfRegisteredOrders(
+                customerOrderStatusDTO.getCustomerId(),
+                customerOrderStatusDTO.getOrderStatus());
+    }
+
+    @GetMapping("/calculateNumberOfPlacedOrders/{expertId}")
+    public int calculateNumberOfPlacedOrders(@PathVariable Long expertId) {
+        return adminService.calculateNumberOfPlacedOrders(expertId);
+    }
+
+    @GetMapping("/calculateNumberOfPlacedOrders/{expertId}/{isAccept}")
+    public int calculateNumberOfPlacedOrders(@PathVariable Long expertId, @PathVariable Boolean isAccept) {
+        return adminService.calculateNumberOfPlacedOrders(expertId, isAccept);
     }
 }
