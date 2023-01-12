@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class OrderExpertOfferDTO {
 
-    private Long expertId;
+    /*private Long expertId;*/
     private Long orderId;
     private String offer;
     private Long proposedPrice;

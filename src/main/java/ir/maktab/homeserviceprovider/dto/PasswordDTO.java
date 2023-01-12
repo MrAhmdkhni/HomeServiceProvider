@@ -1,5 +1,6 @@
 package ir.maktab.homeserviceprovider.dto;
 
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,6 +8,8 @@ import lombok.Setter;
 @Setter
 public class PasswordDTO {
 
-    Long Id;
+    /*Long Id;*/
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8}$",
+            message = "the password must contain numbers, lowercase and uppercase letters")
     String password;
 }

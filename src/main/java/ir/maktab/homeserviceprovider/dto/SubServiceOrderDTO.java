@@ -5,9 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CustomerSubServiceOrderDTO {
+public class SubServiceOrderDTO {
 
-    private Long customerId;
+    /*private Long customerId;*/
     private Long subServiceId;
     private Long proposedPrice;
     private String description;
