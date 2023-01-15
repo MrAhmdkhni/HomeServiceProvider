@@ -4,12 +4,10 @@ import ir.maktab.homeserviceprovider.entity.offer.TimeType;
 import lombok.Getter;
 import lombok.Setter;
 
-
 @Getter
 @Setter
 public class OrderExpertOfferDTO {
 
-    /*private Long expertId;*/
     private Long orderId;
     private String offer;
     private Long proposedPrice;

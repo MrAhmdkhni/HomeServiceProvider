@@ -1,6 +1,5 @@
 package ir.maktab.homeserviceprovider.dto;
 
-import ir.maktab.homeserviceprovider.entity.person.ExpertStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +22,6 @@ public class CustomerFilterDTO {
     private Long credit;
     private Long minCredit;
     private String maxCreationDate;
-    private /*String*/ LocalDateTime CreationDate;
+    private LocalDateTime CreationDate;
     private String minCreationDate;
 }

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor //for mapper is needed
+@NoArgsConstructor
 public class OrderDTO {
 
     private LocalDateTime creationDate;

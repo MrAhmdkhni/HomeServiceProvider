@@ -25,10 +25,10 @@ public class OrderFilterDTO {
     private Long proposedPrice;
     private Long minProposedPrice;
     private String maxCreationDate;
-    private /*String */LocalDateTime CreationDate;
+    private LocalDateTime CreationDate;
     private String minCreationDate;
     private String maxUpdateTime;
-    private /*String */LocalDateTime updateTime;
+    private LocalDateTime updateTime;
     private String minUpdateTime;
 
 }

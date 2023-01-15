@@ -8,7 +8,6 @@ import lombok.Setter;
 @Setter
 public class PasswordDTO {
 
-    /*Long Id;*/
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{8}$",
             message = "the password must contain numbers, lowercase and uppercase letters")
     String password;

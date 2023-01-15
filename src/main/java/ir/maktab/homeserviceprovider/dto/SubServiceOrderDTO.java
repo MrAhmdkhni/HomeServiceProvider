@@ -7,7 +7,6 @@ import lombok.Setter;
 @Setter
 public class SubServiceOrderDTO {
 
-    /*private Long customerId;*/
     private Long subServiceId;
     private Long proposedPrice;
     private String description;

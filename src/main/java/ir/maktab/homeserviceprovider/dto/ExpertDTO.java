@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-@NoArgsConstructor //for mapper is needed
+@NoArgsConstructor
 public class ExpertDTO {
 
     private String firstname;
