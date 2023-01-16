@@ -1,8 +1,6 @@
 package ir.maktab.homeserviceprovider.service.impl;
 
 import ir.maktab.homeserviceprovider.entity.person.Person;
-/*import ir.maktab.homeserviceprovider.registration.VerificationToken;
-import ir.maktab.homeserviceprovider.registration.VerificationTokenRepository;*/
 import ir.maktab.homeserviceprovider.repository.PersonRepository;
 import ir.maktab.homeserviceprovider.service.PersonService;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,8 +15,6 @@ import java.util.Optional;
 public class PersonServiceImpl implements PersonService, UserDetailsService {
 
     private final PersonRepository personRepository;
-    // baeldung
-    /*private final VerificationTokenRepository token;*/
 
     public PersonServiceImpl(PersonRepository personRepository) {
         this.personRepository = personRepository;
@@ -32,7 +28,6 @@ public class PersonServiceImpl implements PersonService, UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(String.format("User with username %s not found", username)));
     }
 
-    // don't needed
     @Override
     @Transactional
     public Optional<Person> findByUsername(String username) {
@@ -42,47 +37,4 @@ public class PersonServiceImpl implements PersonService, UserDetailsService {
             return Optional.empty();
         }
     }
-
-    //// baeldung
-
-    /*@Override
-    public Person getPerson(String verificationToken) {
-        return token.findByToken(verificationToken).getPerson();
-    }
-
-    @Override
-    public void saveRegisteredUser(Person person) {
-        personRepository.save(person);
-    }
-
-    @Override
-    public void createVerificationToken(Person person, String token) {
-        VerificationToken myToken = new VerificationToken(token, person);
-        this.token.save(myToken);
-    }
-
-    @Override
-    public VerificationToken getVerificationToken(String VerificationToken) {
-        return token.findByToken(VerificationToken);
-    }*/
-
-
-
-
-    //gitttttttttttttttttttt
-    /*@Override
-    public void createVerificationTokenForUser(Person person, String token) {
-        final VerificationToken myToken = new VerificationToken(token, person);
-        tokenRepository.save(myToken);
-    }
-
-    @Override
-    public VerificationToken getVerificationToken(String VerificationToken) {
-        return tokenRepository.findByToken(VerificationToken);
-    }
-
-    @Override
-    public void saveRegisteredUser(final Person person) {
-        personRepository.save(person);
-    }*/
 }
