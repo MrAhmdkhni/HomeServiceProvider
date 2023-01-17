@@ -36,10 +36,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
-    @ExceptionHandler(value = DuplicateTokenException.class)
-    public ResponseEntity<Object> duplicateTokenExceptionHandler(Exception ex, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
 
     @ExceptionHandler(value = DuplicateUsernameException.class)
     public ResponseEntity<Object> duplicateUsernameExceptionHandler(Exception ex, WebRequest request) {
@@ -58,11 +54,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = ExpertNotFoundException.class)
     public ResponseEntity<Object> expertNotFoundExceptionHandler(Exception ex, WebRequest request) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-
-    @ExceptionHandler(value = FailedToSendEmailException.class)
-    public ResponseEntity<Object> failedToSendEmailExceptionHandler(Exception ex, WebRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
@@ -131,6 +122,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
+    @ExceptionHandler(value = RegistrationException.class)
+    public ResponseEntity<Object> duplicateTokenExceptionHandler(Exception ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
     @ExceptionHandler(value = ScoreException.class)
     public ResponseEntity<Object> scoreExceptionHandler(Exception ex, WebRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
@@ -155,18 +151,4 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> usernameNotFoundExceptionHandler(Exception ex, WebRequest request) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
-
-
-//    @ExceptionHandler(value = RuntimeException.class)
-//    public ResponseEntity<Object> RuntimeExceptionHandler(Exception ex, WebRequest request) {
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("RuntimeException: " + ex.getMessage());
-//    }
-
-
-//    @ExceptionHandler(value = .class)
-//    public ResponseEntity<Object> Handler(Exception ex, WebRequest request) {
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-//    }
-
-
 }
