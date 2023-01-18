@@ -2,12 +2,12 @@ package ir.maktab.homeserviceprovider.service.impl;
 
 import ir.maktab.homeserviceprovider.base.service.impl.BaseServiceImpl;
 import ir.maktab.homeserviceprovider.dto.ExpertFilterDTO;
-import ir.maktab.homeserviceprovider.entity.token.ConfirmationToken;
 import ir.maktab.homeserviceprovider.entity.comment.Comment;
 import ir.maktab.homeserviceprovider.entity.offer.Offer;
 import ir.maktab.homeserviceprovider.entity.order.Order;
 import ir.maktab.homeserviceprovider.entity.order.OrderStatus;
 import ir.maktab.homeserviceprovider.entity.person.*;
+import ir.maktab.homeserviceprovider.entity.token.ConfirmationToken;
 import ir.maktab.homeserviceprovider.exception.*;
 import ir.maktab.homeserviceprovider.repository.ExpertRepository;
 import ir.maktab.homeserviceprovider.service.*;
@@ -18,6 +18,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,16 +38,18 @@ public class ExpertServiceImpl
     private final CommentService commentService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final ConfirmationTokenService confirmationTokenService;
+    private final EmailSenderService emailSenderService;
     @PersistenceContext
     private EntityManager entityManager;
 
-    public ExpertServiceImpl(ExpertRepository repository, OfferService offerService, OrderService orderService, CommentService commentService, BCryptPasswordEncoder passwordEncoder, ConfirmationTokenService confirmationTokenService) {
+    public ExpertServiceImpl(ExpertRepository repository, OfferService offerService, OrderService orderService, CommentService commentService, BCryptPasswordEncoder passwordEncoder, ConfirmationTokenService confirmationTokenService, EmailSenderService emailSenderService) {
         super(repository);
         this.offerService = offerService;
         this.orderService = orderService;
         this.commentService = commentService;
         this.passwordEncoder = passwordEncoder;
         this.confirmationTokenService = confirmationTokenService;
+        this.emailSenderService = emailSenderService;
     }
 
 
@@ -100,17 +103,9 @@ public class ExpertServiceImpl
     }
 
     @Override
-    public String signUpWithValidation(Expert expert, String imageName, Long imageSize) {
-        if (findByEmail(expert.getEmail()).isPresent()) {
-            Expert loadedExpert = findByEmail(expert.getEmail()).get();
-
-            if (!loadedExpert.getIsActive()) {
-                String token = UUID.randomUUID().toString();
-                saveConfirmationToken(loadedExpert, token);
-                return token;
-            }
+    public void signUpWithValidation(Expert expert, String imageName, Long imageSize) {
+        if (findByEmail(expert.getEmail()).isPresent())
             throw new DuplicateEmailException("this email already exist!");
-        }
         if (findByUsername(expert.getUsername()).isPresent())
             throw new DuplicateUsernameException("this username already exist!");
         Validation.checkImage(imageName, imageSize);
@@ -123,21 +118,28 @@ public class ExpertServiceImpl
         expert.setScore(0);
         saveOrUpdate(expert);
 
-        String token = UUID.randomUUID().toString();
-        saveConfirmationToken(expert, token);
-        return token;
-    }
+        ConfirmationToken confirmationToken = new ConfirmationToken(expert);
+        confirmationToken.setConfirmationToken(UUID.randomUUID().toString());
+        confirmationTokenService.saveOrUpdate(confirmationToken);
 
-    private void saveConfirmationToken(Person person, String token) {
-        ConfirmationToken confirmationToken = new ConfirmationToken(
-                token, LocalDateTime.now(), LocalDateTime.now().plusMinutes(15), person
-        );
-        confirmationTokenService.saveConfirmationToken(confirmationToken);
+        SimpleMailMessage mailMessage = emailSenderService.createEmail(expert.getEmail(), confirmationToken.getConfirmationToken(), "expert");
+        emailSenderService.sendEmail(mailMessage);
     }
 
     @Override
-    public int activeExpert(String email, ExpertStatus expertStatus) {
-        return repository.activeExpert(email, expertStatus);
+    @Transactional
+    public void confirmExpertAccount(String confirmationToken) {
+        Optional<ConfirmationToken> token = confirmationTokenService.findByConfirmationToken(confirmationToken);
+        if (token.isEmpty())
+            throw new TokenNotFoundException("token not found!");
+        if (token.get().getPerson().getIsActive())
+            throw new RegistrationException("this expert's account is currently active!");
+        Optional<Expert> expert = findByEmail(token.get().getPerson().getEmail());
+        if (expert.isEmpty())
+            throw new ExpertNotFoundException("there is no expert!");
+        expert.get().setIsActive(true);
+        expert.get().setExpertStatus(ExpertStatus.AWAITING);
+        saveOrUpdate(expert.get());
     }
 
     @Override
@@ -319,5 +321,4 @@ public class ExpertServiceImpl
             throw new ExpertNotFoundException("this expert does not exist!");
         return expert.get().getCredit();
     }
-
 }

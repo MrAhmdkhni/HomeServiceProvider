@@ -23,9 +23,9 @@ public interface ExpertService extends BaseService<Expert, Long> {
 
     void signUp(Expert expert, String imageName, Long imageSize);
 
-    String signUpWithValidation(Expert expert, String imageName, Long imageSize);
+    void signUpWithValidation(Expert expert, String imageName, Long imageSize);
 
-    int activeExpert(String email, ExpertStatus expertStatus);
+    void confirmExpertAccount(String confirmationToken);
 
     List<Order> viewOrdersRelatedToExpert(Long expertId);
 
