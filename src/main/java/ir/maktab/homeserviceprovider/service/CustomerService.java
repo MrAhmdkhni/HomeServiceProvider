@@ -25,9 +25,9 @@ public interface CustomerService extends BaseService<Customer, Long> {
 
     void signUp(Customer customer);
 
-    String signUpWithValidation(Customer customer);
+    void signUpWithValidation(Customer customer);
 
-    int activeCustomer(String email);
+    void confirmCustomerAccount(String confirmationToken);
 
     List<MainService> findAllMainService();
 

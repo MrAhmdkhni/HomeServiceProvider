@@ -2,17 +2,16 @@ package ir.maktab.homeserviceprovider.service.impl;
 
 import ir.maktab.homeserviceprovider.base.service.impl.BaseServiceImpl;
 import ir.maktab.homeserviceprovider.dto.CustomerFilterDTO;
-import ir.maktab.homeserviceprovider.entity.token.ConfirmationToken;
 import ir.maktab.homeserviceprovider.entity.comment.Comment;
 import ir.maktab.homeserviceprovider.entity.offer.Offer;
 import ir.maktab.homeserviceprovider.entity.order.Order;
 import ir.maktab.homeserviceprovider.entity.order.OrderStatus;
 import ir.maktab.homeserviceprovider.entity.person.Customer;
 import ir.maktab.homeserviceprovider.entity.person.Expert;
-import ir.maktab.homeserviceprovider.entity.person.Person;
 import ir.maktab.homeserviceprovider.entity.person.Role;
 import ir.maktab.homeserviceprovider.entity.service.MainService;
 import ir.maktab.homeserviceprovider.entity.service.SubService;
+import ir.maktab.homeserviceprovider.entity.token.ConfirmationToken;
 import ir.maktab.homeserviceprovider.exception.*;
 import ir.maktab.homeserviceprovider.repository.CustomerRepository;
 import ir.maktab.homeserviceprovider.service.*;
@@ -22,6 +21,7 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,10 +45,11 @@ public class CustomerServiceImpl
     private final ExpertService expertService;
     private final BCryptPasswordEncoder passwordEncoder;
     private final ConfirmationTokenService confirmationTokenService;
+    private final EmailSenderService emailSenderService;
     @PersistenceContext
     private EntityManager entityManager;
 
-    public CustomerServiceImpl(CustomerRepository repository, MainServiceService mainServiceService, SubServiceService subServiceService, OrderService orderService, CommentService commentService, OfferService offerService, ExpertService expertService, BCryptPasswordEncoder passwordEncoder, ConfirmationTokenService confirmationTokenService) {
+    public CustomerServiceImpl(CustomerRepository repository, MainServiceService mainServiceService, SubServiceService subServiceService, OrderService orderService, CommentService commentService, OfferService offerService, ExpertService expertService, BCryptPasswordEncoder passwordEncoder, ConfirmationTokenService confirmationTokenService, EmailSenderService emailSenderService) {
         super(repository);
         this.mainServiceService = mainServiceService;
         this.subServiceService = subServiceService;
@@ -58,6 +59,7 @@ public class CustomerServiceImpl
         this.expertService = expertService;
         this.passwordEncoder = passwordEncoder;
         this.confirmationTokenService = confirmationTokenService;
+        this.emailSenderService = emailSenderService;
     }
 
 
@@ -108,17 +110,9 @@ public class CustomerServiceImpl
     }
 
     @Override
-    public String signUpWithValidation(Customer customer) {
-        if (findByEmail(customer.getEmail()).isPresent()) {
-            Customer loadedCustomer = findByEmail(customer.getEmail()).get();
-
-            if (!loadedCustomer.getIsActive()) {
-                String token = UUID.randomUUID().toString();
-                saveConfirmationToken(loadedCustomer, token);
-                return token;
-            }
+    public void signUpWithValidation(Customer customer) {
+        if (findByEmail(customer.getEmail()).isPresent())
             throw new DuplicateEmailException("this email already exist!");
-        }
         if (findByUsername(customer.getUsername()).isPresent())
             throw new DuplicateUsernameException("this username already exist!");
 
@@ -128,21 +122,26 @@ public class CustomerServiceImpl
         customer.setCredit(0L);
         saveOrUpdate(customer);
 
-        String token = UUID.randomUUID().toString();
-        saveConfirmationToken(customer, token);
-        return token;
-    }
+        ConfirmationToken confirmationToken = new ConfirmationToken(customer);
+        confirmationToken.setConfirmationToken(UUID.randomUUID().toString());
+        confirmationTokenService.saveOrUpdate(confirmationToken);
 
-    private void saveConfirmationToken(Person person, String token) {
-        ConfirmationToken confirmationToken = new ConfirmationToken(
-                token, LocalDateTime.now(), LocalDateTime.now().plusMinutes(15), person
-        );
-        confirmationTokenService.saveConfirmationToken(confirmationToken);
+        SimpleMailMessage mailMessage = emailSenderService.createEmail(customer.getEmail(), confirmationToken.getConfirmationToken(), "customer");
+        emailSenderService.sendEmail(mailMessage);
     }
 
     @Override
-    public int activeCustomer(String email) {
-        return repository.activeCustomer(email);
+    public void confirmCustomerAccount(String confirmationToken) {
+        Optional<ConfirmationToken> token = confirmationTokenService.findByConfirmationToken(confirmationToken);
+        if (token.isEmpty())
+            throw new TokenNotFoundException("token not found!");
+        if (token.get().getPerson().getIsActive())
+            throw new RegistrationException("this customer's account is currently active!");
+        Optional<Customer> customer = findByEmail(token.get().getPerson().getEmail());
+        if (customer.isEmpty())
+            throw new CustomerNotFoundException("there is no customers!");
+        customer.get().setIsActive(true);
+        saveOrUpdate(customer.get());
     }
 
     @Override
@@ -354,5 +353,4 @@ public class CustomerServiceImpl
             throw new CustomerNotFoundException("this customer does not exit!");
         return customer.get().getCredit();
     }
-
 }
