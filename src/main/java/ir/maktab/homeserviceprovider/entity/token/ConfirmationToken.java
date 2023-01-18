@@ -2,16 +2,11 @@ package ir.maktab.homeserviceprovider.entity.token;
 
 import ir.maktab.homeserviceprovider.base.entity.BaseEntity;
 import ir.maktab.homeserviceprovider.entity.person.Person;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -20,26 +15,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ConfirmationToken extends BaseEntity<Long> {
 
-    @Column(nullable = false)
-    private String token;
+    private String confirmationToken;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(nullable = false)
-    private LocalDateTime expiresAt;
-
-    private LocalDateTime confirmedAt;
-
-    @ManyToOne
+    @OneToOne(targetEntity = Person.class, fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, name = "person_id")
-    private Person person/*appUser*/;
+    private Person person;
 
-    public ConfirmationToken(String token, LocalDateTime createdAt, LocalDateTime expiresAt, Person person) {
-        this.token = token;
-        this.createdAt = createdAt;
-        this.expiresAt = expiresAt;
+    public ConfirmationToken(Person person) {
         this.person = person;
     }
-
 }
