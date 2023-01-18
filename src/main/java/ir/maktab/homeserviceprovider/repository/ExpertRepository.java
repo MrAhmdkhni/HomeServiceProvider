@@ -5,7 +5,6 @@ import ir.maktab.homeserviceprovider.entity.person.ExpertStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -54,9 +53,4 @@ public interface ExpertRepository extends JpaRepository<Expert, Long> {
             where e.id = :expertId
             """)
     int updateCredit(Long expertId, Long newCredit);
-
-    @Transactional
-    @Modifying
-    @Query("update Expert e set e.isActive = true, e.expertStatus = :expertStatus where e.email = :email")
-    int activeExpert(String email, ExpertStatus expertStatus);
 }
