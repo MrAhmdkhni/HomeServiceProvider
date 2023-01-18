@@ -4,7 +4,6 @@ import ir.maktab.homeserviceprovider.entity.person.Customer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -31,9 +30,4 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             where c.id = :customerId
             """)
     int updateCredit(Long customerId, Long newCredit);
-
-    @Transactional
-    @Modifying
-    @Query("update Customer c set c.isActive = true where c.email = :email")
-    int activeCustomer(String email);
 }
